@@ -7,26 +7,37 @@ import re
 class OcSpider(BaseSpider):
 	name = 'ocrigg'
 	allowed_domains = ['pipelineme.com']
-	start_urls = ['http://www.pipelineme.com/research/land-rigs/']
 
-	def parse(self, response):
-		hxs = HtmlXPathSelector(response)
-		countries = [x for x in hxs.select('//select[@name="Country"]/option/@value').extract() if x]
-		for country in countries:
-			url = "http://www.pipelineme.com/research/land-rigs?Country=%s" % (country)
-			yield Request(url=url, callback=self.yield_all_pages_from_country)
 
-	def yield_all_pages_from_country(self, response):
-		hxs = HtmlXPathSelector(response)
-		last = -1
-		try:
-			last = int(hxs.select('//div[@class="pagination"]//a/@href').extract()[-2][-1])
-		except:
-			yield Request(url=response.url, callback=self.yield_riggs)
-		if last >= 0:
-			for page in range(1, last+1):
-				url = "%s&page=%s" % (response.url, page)
-				yield Request(url=url, callback=self.yield_riggs)
+	def start_requests(self):
+		for page in range(1, 58):
+			url = "http://www.pipelineme.com/research/land-rigs/?page=%i" % (page)
+			yield Request(url=url, callback=self.yield_riggs)
+
+
+	# def parse(self, response):
+	# 	hxs = HtmlXPathSelector(response)
+	# 	countries = [x for x in hxs.select('//select[@name="Country"]/option/@value').extract() if x]
+	# 	for country in countries:
+	# 		if country != 'USA':
+	# 			continue
+	# 		url = "http://www.pipelineme.com/research/land-rigs?Country=%s" % (country)
+	# 		yield Request(url=url, callback=self.yield_all_pages_from_country)
+	# 		break
+
+	# def yield_all_pages_from_country(self, response):
+	# 	hxs = HtmlXPathSelector(response)
+	# 	last = -1
+	# 	try:
+	# 		last = int(hxs.select('//div[@class="pagination"]//a/@href').extract()[-2][-1])
+	# 	except:
+	# 		yield Request(url=response.url, callback=self.yield_riggs)
+	# 	print last
+	# 	if last >= 1:
+	# 		for page in range(2, last+1):
+	# 			url = "%s&page=%s" % (response.url, page)
+	# 			yield Request(url=url, callback=self.yield_riggs)
+	# 			break
 
 	def yield_riggs(self, response):
 		hxs = HtmlXPathSelector(response)
