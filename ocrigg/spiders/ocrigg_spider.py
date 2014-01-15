@@ -18,10 +18,15 @@ class OcSpider(BaseSpider):
 
 	def yield_all_pages_from_country(self, response):
 		hxs = HtmlXPathSelector(response)
-		last = int(hxs.select('//div[@class="pagination"]//a/@href').extract()[-2][-1])
-		for page in range(1, last+1):
-			url = "%s&page=%s" % (response.url, page)
-			yield Request(url=url, callback=self.yield_riggs)
+		last = -1
+		try:
+			last = int(hxs.select('//div[@class="pagination"]//a/@href').extract()[-2][-1])
+		except:
+			yield Request(url=response.url, callback=self.yield_riggs)
+		if last >= 0:
+			for page in range(1, last+1):
+				url = "%s&page=%s" % (response.url, page)
+				yield Request(url=url, callback=self.yield_riggs)
 
 	def yield_riggs(self, response):
 		hxs = HtmlXPathSelector(response)
